@@ -14,6 +14,9 @@ import (
 	"image/jpeg"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -51,7 +54,7 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 		resizedImage := resizeImage(downloadedS3Image)
 		resizedAndCroppedImage := cropImage(resizedImage)
 
-		uploadImage(bucket, resizedAndCroppedImage)
+		uploadImage(bucket, resizedAndCroppedImage, *item.Key)
 	}
 
 	return model.Response{Message: fmt.Sprintf("%s is %d years old!", event.Name, event.Age)}, nil
@@ -148,8 +151,8 @@ func cropImage(image image.Image) image.Image {
 	return imaging.CropCenter(image, maxWidth, maxHeight)
 }
 
-
-func uploadImage(bucket string, image image.Image) {
+// encode to jpeg, keep the original filename and upload to a folder in the same directory e.g. /cover-images/1100x250
+func uploadImage(bucket string, image image.Image, key string) {
 	log.Printf("Encoding image for upload to S3")
 	buf := new(bytes.Buffer)
 	err := jpeg.Encode(buf, image, nil)
@@ -158,11 +161,20 @@ func uploadImage(bucket string, image image.Image) {
 		log.Printf("JPEG encoding error: %v", err) //todo: check what format we support
 	}
 
+	originalFilename := filepath.Base(key)
+	fileName := strings.TrimSuffix(originalFilename, path.Ext(key)) + ".jpg"
+
+	outputPath := os.Getenv("S3_MERCHANT_COVER_PHOTOS_FOLDER_PATH") +
+		"/" + strconv.Itoa(maxWidth) + "x" + strconv.Itoa(maxHeight) +
+		"/" + fileName
+
+	log.Printf("Saving file to: %v", outputPath)
+
 	uploader := s3manager.NewUploader(sess)
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Body:   bytes.NewReader(buf.Bytes()),
 		Bucket: aws.String(bucket),
-		Key:    aws.String("folder/resized12.jpg"),
+		Key:    aws.String(outputPath),
 	})
 
 	if err != nil {
