@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   lambci-build:
     image: lambci/lambda:go1.x
@@ -10,5 +10,5 @@ services:
     volumes:
       - ./:/var/task
     command: >-
-      main
+      app
       '{"bucket": "quidco2", "folder": "merchant-cover-photos/banners/", "width": 1100, "height": 250}'
