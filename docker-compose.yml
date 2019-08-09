@@ -6,9 +6,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-      - S3_BUCKET_NAME=quidco2
-      - S3_MERCHANT_COVER_PHOTOS_FOLDER_PATH=merchant-cover-photos
       - REGION_NAME=eu-west-2
     volumes:
       - ./:/var/task
-    command: "main '{\"What is your name?\": \"John\", \"How old are you?\": 9}'"
+    command: "main '{\"bucket\": \"quidco2\", \"folder\": \"merchant-cover-photos\", \"width\": 1100, \"height\": 250}'"

@@ -32,32 +32,26 @@ func main() {
 
 func HandleLambdaEvent(event model.Event) (model.Response, error) {
 	initS3Client()
+	verifyEvent(event)
 
-	bucket := os.Getenv("S3_BUCKET_NAME")
-	folder := os.Getenv("S3_MERCHANT_COVER_PHOTOS_FOLDER_PATH")
-
-	resp := getBannerImages(bucket, folder)
+	resp := getBannerImages(event.Bucket, event.Folder)
 
 	for _, item := range resp.Contents {
 		if !strings.HasSuffix(*item.Key, ".jpg") { //todo add other formats
-			fmt.Println("Not an image, skip")
+			log.Println("File not an image, skip: ", *item.Key)
 			continue
 		}
+		
+		log.Println("Process image file: ", *item.Key)
 
-		fmt.Println("Name:         ", *item.Key)
-		fmt.Println("Last modified:", *item.LastModified)
-		fmt.Println("Size:         ", *item.Size)
-		fmt.Println("Storage class:", *item.StorageClass)
-		fmt.Println("")
-
-		downloadedS3Image := downloadS3Image(bucket, *item.Key)
+		downloadedS3Image := downloadS3Image(event.Bucket, *item.Key)
 		resizedImage := resizeImage(downloadedS3Image)
 		resizedAndCroppedImage := cropImage(resizedImage)
 
-		uploadImage(bucket, resizedAndCroppedImage, *item.Key)
+		uploadImage(event.Bucket, event.Folder, resizedAndCroppedImage, *item.Key)
 	}
 
-	return model.Response{Message: fmt.Sprintf("%s is %d years old!", event.Name, event.Age)}, nil
+	return model.Response{Message: fmt.Sprintf("%s is %d years old!", event.Width, event.Height)}, nil
 }
 
 func initS3Client() {
@@ -72,6 +66,26 @@ func initS3Client() {
 	}
 
 	svc = s3.New(sess)
+}
+
+func verifyEvent(event model.Event) {
+	if event.Bucket == "" {
+		exitErrorf("'folder' has not been set in the event")
+	}
+
+	if event.Folder == "" {
+		exitErrorf("'folder' has not been set in the event")
+	}
+
+	if event.Width == 0 {
+		exitErrorf("'width' has not been set in the event")
+	}
+
+	if event.Height == 0 {
+		exitErrorf("'height' has not been set in the event")
+	}
+
+	log.Printf("Resizing images in the bucket %q for the folder %q to the size %dx%d", event.Bucket, event.Folder, event.Width, event.Height)
 }
 
 func getBannerImages(bucket string, folder string) *s3.ListObjectsV2Output {
@@ -104,7 +118,7 @@ func downloadS3Image(bucket string, key string) image.Image {
 		log.Printf("Could not download from S3: %v", err)
 	}
 
-	log.Printf("Decoding image: %v bytes", len(buff.Bytes()))
+	log.Printf("-- Decoding image: %v bytes", len(buff.Bytes()))
 
 	imageBytes := buff.Bytes()
 	reader := bytes.NewReader(imageBytes)
@@ -126,12 +140,11 @@ func resizeImage(image image.Image) image.Image{
 	newHeight := (height / width) * maxWidth
 
 	if (newHeight > maxHeight) {
-		log.Printf("Resizing image by height")
+		log.Printf("-- Resizing image by height")
 		return imaging.Resize(image, 0, maxHeight, imaging.Lanczos)
 
 	} else {
-		log.Printf("Resizing image by width")
-
+		log.Printf("-- Resizing image by width")
 		return imaging.Resize(image, maxWidth, 0, imaging.Lanczos)
 	}
 }
@@ -142,33 +155,34 @@ func cropImage(image image.Image) image.Image {
 	height := bounds.Max.Y
 
 	if (width == maxWidth && height == maxHeight) {
-		log.Printf("Image is in the correct dimension, no need to crop")
+		log.Printf("-- Image is in the correct dimension, no need to crop")
 		return image
 	}
 
-	log.Printf("Cropping image to fit the max dimensions")
+	log.Printf("-- Cropping image to fit the max dimensions: %dx%d", maxWidth, maxHeight)
 
 	return imaging.CropCenter(image, maxWidth, maxHeight)
 }
 
-// encode to jpeg, keep the original filename and upload to a folder in the same directory e.g. /cover-images/1100x250
-func uploadImage(bucket string, image image.Image, key string) {
-	log.Printf("Encoding image for upload to S3")
+// encode to jpg, keep the original filename and upload to a folder in the same directory but a size prefix
+// e.g. /cover-images/1100x250
+func uploadImage(bucket string, folder string, image image.Image, key string) {
+	log.Printf("-- Encoding image for upload to S3")
 	buf := new(bytes.Buffer)
 	err := jpeg.Encode(buf, image, nil)
 
 	if err != nil {
-		log.Printf("JPEG encoding error: %v", err) //todo: check what format we support
+		log.Printf("-- JPEG encoding error: %v", err) //todo: check what format we support
 	}
 
 	originalFilename := filepath.Base(key)
 	fileName := strings.TrimSuffix(originalFilename, path.Ext(key)) + ".jpg"
 
-	outputPath := os.Getenv("S3_MERCHANT_COVER_PHOTOS_FOLDER_PATH") +
+	outputPath := folder +
 		"/" + strconv.Itoa(maxWidth) + "x" + strconv.Itoa(maxHeight) +
 		"/" + fileName
 
-	log.Printf("Saving file to: %v", outputPath)
+	log.Printf("-- Saving file to: %v", outputPath)
 
 	uploader := s3manager.NewUploader(sess)
 	result, err := uploader.Upload(&s3manager.UploadInput{
@@ -178,10 +192,10 @@ func uploadImage(bucket string, image image.Image, key string) {
 	})
 
 	if err != nil {
-		log.Printf("Failed to upload: %v", err)
+		log.Printf("-- Failed to upload: %v", err)
 	}
 
-	log.Printf("Successfully uploaded to: %v", result.Location)
+	log.Printf("-- Successfully uploaded to: %v", result.Location)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

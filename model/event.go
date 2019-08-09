@@ -1,6 +1,8 @@
 package model
 
 type Event struct {
-	Name string `json:"What is your name?"`
-	Age int     `json:"How old are you?"`
+	Bucket string `json:"bucket"`
+	Folder string `json:"folder"`
+	Width int     `json:"width"`
+	Height int    `json:"height"`
 }
