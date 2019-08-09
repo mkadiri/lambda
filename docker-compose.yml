@@ -11,4 +11,9 @@ services:
       - ./:/var/task
     command: >-
       app
-      '{"bucket": "quidco2", "folder": "merchant-cover-photos/banners/", "width": 1100, "height": 250}'
+      '{
+        "bucket": "quidco2",
+        "folder": "merchant-cover-photos/banners/",
+        "width": 1100,
+        "height": 250
+      }'

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"image"
@@ -10,17 +11,18 @@ import (
 	"log"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 type S3ImageManager struct {
+	S3Session *session.Session
 	Bucket string
 }
 
 func (s3ImageManager *S3ImageManager) download(key string) image.Image {
 	buff := &aws.WriteAtBuffer{}
-	s3dl := s3manager.NewDownloader(sess)
+	s3dl := s3manager.NewDownloader(s3ImageManager.S3Session)
+
 	_, err := s3dl.Download(buff, &s3.GetObjectInput{
 		Bucket: aws.String(s3ImageManager.Bucket),
 		Key:    aws.String(key),
@@ -52,16 +54,16 @@ func (s3ImageManager *S3ImageManager) upload(folder string, image image.Image, k
 	err := jpeg.Encode(buf, image, nil)
 
 	if err != nil {
-		log.Printf("-- JPEG encoding error: %v", err) //todo: check what format we support
+		log.Printf("-- JPEG encoding error: %v", err)
 	}
 
 	originalFilename := filepath.Base(key)
 	fileName := strings.TrimSuffix(originalFilename, path.Ext(key)) + ".jpg"
-	outputPath := folder + strconv.Itoa(maxWidth) + "x" + strconv.Itoa(maxHeight) + "/" + fileName
+	outputPath := folder + "/" + fileName
 
 	log.Printf("-- Saving file to: %v", outputPath)
 
-	uploader := s3manager.NewUploader(sess)
+	uploader := s3manager.NewUploader(s3ImageManager.S3Session)
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Body:   bytes.NewReader(buf.Bytes()),
 		Bucket: aws.String(s3ImageManager.Bucket),
