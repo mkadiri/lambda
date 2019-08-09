@@ -32,16 +32,23 @@ func main() {
 
 func HandleLambdaEvent(event model.Event) (model.Response, error) {
 	initS3Client()
-	verifyEvent(event)
 
-	resp := getBannerImages(event.Bucket, event.Folder)
+	validate := event.Validate()
+
+	if validate != nil {
+		exitErrorf(validate.Error())
+	}
+
+	log.Printf("Resizing images in the bucket %q for the folder %q to the size %dx%d", event.Bucket, event.Folder, event.Width, event.Height)
+
+	resp := getImages(event.Bucket, event.Folder)
 
 	for _, item := range resp.Contents {
-		if !strings.HasSuffix(*item.Key, ".jpg") { //todo add other formats
+		if !isObjectImage(*item.Key) {
 			log.Println("File not an image, skip: ", *item.Key)
 			continue
 		}
-		
+
 		log.Println("Process image file: ", *item.Key)
 
 		downloadedS3Image := downloadS3Image(event.Bucket, *item.Key)
@@ -52,6 +59,18 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 	}
 
 	return model.Response{Message: fmt.Sprintf("%s is %d years old!", event.Width, event.Height)}, nil
+}
+
+func isObjectImage(key string) bool {
+	var validImageExtensions = [3]string{"jpg", "jpeg", "png"}
+
+	for _, ext := range validImageExtensions {
+		if strings.HasSuffix(key, "." + ext) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func initS3Client() {
@@ -68,32 +87,26 @@ func initS3Client() {
 	svc = s3.New(sess)
 }
 
-func verifyEvent(event model.Event) {
-	if event.Bucket == "" {
-		exitErrorf("'folder' has not been set in the event")
-	}
+func getImages(bucket string, folder string) *s3.ListObjectsV2Output {
+	log.Println("Retrieving images")
 
-	if event.Folder == "" {
-		exitErrorf("'folder' has not been set in the event")
-	}
-
-	if event.Width == 0 {
-		exitErrorf("'width' has not been set in the event")
-	}
-
-	if event.Height == 0 {
-		exitErrorf("'height' has not been set in the event")
-	}
-
-	log.Printf("Resizing images in the bucket %q for the folder %q to the size %dx%d", event.Bucket, event.Folder, event.Width, event.Height)
-}
-
-func getBannerImages(bucket string, folder string) *s3.ListObjectsV2Output {
 	resp, err := svc.ListObjectsV2(
 		&s3.ListObjectsV2Input{
 			Bucket: aws.String(bucket),
 			Prefix: aws.String(folder),
+			Delimiter: aws.String(folder+"/"),
 		})
+
+	for _, item := range resp.Contents {
+		fmt.Println("Name:         ", *item.Key)
+		fmt.Println("Last modified:", *item.LastModified)
+		fmt.Println("Size:         ", *item.Size)
+		fmt.Println("Storage class:", *item.StorageClass)
+		fmt.Println("")
+	}
+
+	os.Exit(1)
+
 
 	if err != nil {
 		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)

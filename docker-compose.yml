@@ -9,4 +9,6 @@ services:
       - REGION_NAME=eu-west-2
     volumes:
       - ./:/var/task
-    command: "main '{\"bucket\": \"quidco2\", \"folder\": \"merchant-cover-photos\", \"width\": 1100, \"height\": 250}'"
+    command: >-
+      main
+      '{"bucket": "quidco2", "folder": "merchant-cover-photos/banners", "width": 1100, "height": 250}'
