@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/disintegration/imaging"
 	"image"
 	"image/jpeg"
 	"log"
@@ -41,7 +40,7 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 
 	log.Printf("Resizing images in the bucket %q for the folder %q to the size %dx%d", event.Bucket, event.Folder, event.Width, event.Height)
 
-	resp := getImages(event.Bucket, event.Folder)
+	resp := getImagesAtCurrentLevel(event.Bucket, event.Folder)
 
 	for _, item := range resp.Contents {
 		if !isObjectImage(*item.Key) {
@@ -52,8 +51,10 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 		log.Println("Process image file: ", *item.Key)
 
 		downloadedS3Image := downloadS3Image(event.Bucket, *item.Key)
-		resizedImage := resizeImage(downloadedS3Image)
-		resizedAndCroppedImage := cropImage(resizedImage)
+
+		imageFormatter := ImageFormatter{}
+		resizedImage := imageFormatter.resize(downloadedS3Image)
+		resizedAndCroppedImage := imageFormatter.crop(resizedImage)
 
 		uploadImage(event.Bucket, event.Folder, resizedAndCroppedImage, *item.Key)
 	}
@@ -87,26 +88,16 @@ func initS3Client() {
 	svc = s3.New(sess)
 }
 
-func getImages(bucket string, folder string) *s3.ListObjectsV2Output {
+// returns all the images in the current "folder" only and not the sub-folders
+func getImagesAtCurrentLevel(bucket string, folder string) *s3.ListObjectsV2Output {
 	log.Println("Retrieving images")
 
 	resp, err := svc.ListObjectsV2(
 		&s3.ListObjectsV2Input{
 			Bucket: aws.String(bucket),
 			Prefix: aws.String(folder),
-			Delimiter: aws.String(folder+"/"),
+			Delimiter: aws.String("/"),
 		})
-
-	for _, item := range resp.Contents {
-		fmt.Println("Name:         ", *item.Key)
-		fmt.Println("Last modified:", *item.LastModified)
-		fmt.Println("Size:         ", *item.Size)
-		fmt.Println("Storage class:", *item.StorageClass)
-		fmt.Println("")
-	}
-
-	os.Exit(1)
-
 
 	if err != nil {
 		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
@@ -145,37 +136,6 @@ func downloadS3Image(bucket string, key string) image.Image {
 	return formattedImage
 }
 
-func resizeImage(image image.Image) image.Image{
-	bounds := image.Bounds()
-	width := bounds.Max.X
-	height := bounds.Max.Y
-
-	newHeight := (height / width) * maxWidth
-
-	if (newHeight > maxHeight) {
-		log.Printf("-- Resizing image by height")
-		return imaging.Resize(image, 0, maxHeight, imaging.Lanczos)
-
-	} else {
-		log.Printf("-- Resizing image by width")
-		return imaging.Resize(image, maxWidth, 0, imaging.Lanczos)
-	}
-}
-
-func cropImage(image image.Image) image.Image {
-	bounds := image.Bounds()
-	width := bounds.Max.X
-	height := bounds.Max.Y
-
-	if (width == maxWidth && height == maxHeight) {
-		log.Printf("-- Image is in the correct dimension, no need to crop")
-		return image
-	}
-
-	log.Printf("-- Cropping image to fit the max dimensions: %dx%d", maxWidth, maxHeight)
-
-	return imaging.CropCenter(image, maxWidth, maxHeight)
-}
 
 // encode to jpg, keep the original filename and upload to a folder in the same directory but a size prefix
 // e.g. /cover-images/1100x250
@@ -191,9 +151,7 @@ func uploadImage(bucket string, folder string, image image.Image, key string) {
 	originalFilename := filepath.Base(key)
 	fileName := strings.TrimSuffix(originalFilename, path.Ext(key)) + ".jpg"
 
-	outputPath := folder +
-		"/" + strconv.Itoa(maxWidth) + "x" + strconv.Itoa(maxHeight) +
-		"/" + fileName
+	outputPath := folder + strconv.Itoa(maxWidth) + "x" + strconv.Itoa(maxHeight) + "/" + fileName
 
 	log.Printf("-- Saving file to: %v", outputPath)
 

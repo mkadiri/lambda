@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"strings"
 )
 
 type Event struct {
@@ -19,6 +20,11 @@ func (event *Event) Validate() error {
 	if event.Folder == "" {
 		return errors.New("'folder' has not been set in the event")
 	}
+
+	if !strings.HasSuffix(event.Folder, "/") {
+		return errors.New("'folder' '" + event.Folder + "' must end with a trailing forward slash (/)")
+	}
+
 
 	if event.Width == 0 {
 		return errors.New("'width' has not been set in the event")
