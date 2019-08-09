@@ -1,0 +1,14 @@
+version: '2'
+services:
+  lambci-build:
+    image: lambci/lambda:go1.x
+    container_name: lambci-build
+    environment:
+      - AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+      - S3_BUCKET_NAME=quidco2
+      - S3_MERCHANT_COVER_PHOTOS_FOLDER_PATH=merchant-cover-photos
+      - REGION_NAME=eu-west-2
+    volumes:
+      - ./:/var/task
+    command: "main '{\"What is your name?\": \"John\", \"How old are you?\": 9}'"
