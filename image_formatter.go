@@ -6,39 +6,36 @@ import (
 	"log"
 )
 
-type ImageFormatter struct {
-	MaxWidth int
-	MaxHeight int
-}
+type ImageFormatter struct {}
 
-func (imageFormatter *ImageFormatter) resize(image image.Image) image.Image {
+func (*ImageFormatter) resizeToRatio(image image.Image, maxWidth int, maxHeight int) image.Image {
 	bounds := image.Bounds()
-	width := bounds.Max.X
-	height := bounds.Max.Y
+	imageWidth := bounds.Max.X
+	imageHeight := bounds.Max.Y
 
-	newHeight := (height / width) * imageFormatter.MaxWidth
+	newHeight := (imageHeight / imageWidth) * maxWidth
 
-	if (newHeight > imageFormatter.MaxHeight) {
-		log.Printf("-- Resizing image by height")
-		return imaging.Resize(image, 0, imageFormatter.MaxHeight, imaging.Lanczos)
+	if newHeight > maxHeight {
+		log.Printf("-- Resizing image by maxHeight")
+		return imaging.Resize(image, 0, maxHeight, imaging.Lanczos)
 
 	} else {
-		log.Printf("-- Resizing image by width")
-		return imaging.Resize(image, imageFormatter.MaxWidth, 0, imaging.Lanczos)
+		log.Printf("-- Resizing image by maxWidth")
+		return imaging.Resize(image, maxWidth, 0, imaging.Lanczos)
 	}
 }
 
-func (imageFormatter *ImageFormatter) crop(image image.Image) image.Image {
+func (*ImageFormatter) crop(image image.Image, width int, height int) image.Image {
 	bounds := image.Bounds()
-	width := bounds.Max.X
-	height := bounds.Max.Y
+	imageWidth := bounds.Max.X
+	imageHeight := bounds.Max.Y
 
-	if width == imageFormatter.MaxWidth && height == imageFormatter.MaxHeight {
+	if imageWidth == width && imageHeight == height {
 		log.Printf("-- Image is in the correct dimension, no need to crop")
 		return image
 	}
 
-	log.Printf("-- Cropping image to fit the max dimensions: %dx%d", imageFormatter.MaxWidth, imageFormatter.MaxHeight)
+	log.Printf("-- Cropping image to fit the max dimensions: %dx%d", width, height)
 
-	return imaging.CropCenter(image, imageFormatter.MaxWidth, imageFormatter.MaxHeight)
+	return imaging.CropCenter(image, width, height)
 }

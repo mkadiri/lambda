@@ -12,7 +12,7 @@ services:
     command: >-
       app
       '{
-        "bucket": "quidco2",
+        "bucket": "quidco-images",
         "folder": "merchant-cover-photos/banners/",
         "width": 1100,
         "height": 250

@@ -55,24 +55,22 @@ func processS3Objects(objects []*s3.Object, s3Session *session.Session, event mo
 		log.Printf("Process image %q ", *item.Key)
 
 		s3ImageManager := S3ImageManager{s3Session, event.Bucket}
-
 		downloadedS3Image := s3ImageManager.download(*item.Key)
-
 		bounds := downloadedS3Image.Bounds()
 
 		if bounds.Max.X < event.Width {
-			log.Printf("-- downloaded image width %q is larger than the max width %q, skip resize", bounds.Max.X, event.Width)
+			log.Printf("-- downloaded image width %q is larger than the max width %q, skip resizeToRatio", bounds.Max.X, event.Width)
 			continue
 		}
 
 		if bounds.Max.Y < event.Height {
-			log.Printf("-- downloaded image height %q is larger than the max height %q, skip resize", bounds.Max.X, event.Height)
+			log.Printf("-- downloaded image height %q is larger than the max height %q, skip resizeToRatio", bounds.Max.X, event.Height)
 			continue
 		}
 
-		imageFormatter := ImageFormatter{event.Width, event.Height}
-		resizedImage := imageFormatter.resize(downloadedS3Image)
-		resizedAndCroppedImage := imageFormatter.crop(resizedImage)
+		imageFormatter := ImageFormatter{}
+		resizedImage := imageFormatter.resizeToRatio(downloadedS3Image,event.Width, event.Height)
+		resizedAndCroppedImage := imageFormatter.crop(resizedImage,event.Width, event.Height)
 
 		outputFolder := event.Folder + strconv.Itoa(event.Width) + "x" + strconv.Itoa(event.Height)
 
