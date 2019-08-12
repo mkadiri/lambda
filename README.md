@@ -14,7 +14,11 @@ the the excess height evenly from both top and bottom to give us a final size of
 
 ### make run 
 
-The docker-compose has everything you need to run this application locally, the function name `app` as well as an event
+The docker-compose has everything you need to run this application locally, however you'll need to specify your AWS credentials.
+
+For testing purposes you'll need to create and s3 bucket with a folder, with images
+
+the function name `app` as well as an event
 json will need to be passed.
 
 The event json needs to specify the s3 bucket, s3 obect (folder) and also the width and height you want to resize images to
