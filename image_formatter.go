@@ -8,7 +8,7 @@ import (
 
 type ImageFormatter struct {}
 
-func (*ImageFormatter) resizeToRatio(image image.Image, maxWidth int, maxHeight int) image.Image {
+func (*ImageFormatter) resizeToRatioFromMaxDimensions(image image.Image, maxWidth int, maxHeight int) image.Image {
 	bounds := image.Bounds()
 	imageWidth := bounds.Max.X
 	imageHeight := bounds.Max.Y

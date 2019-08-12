@@ -69,7 +69,7 @@ func processS3Objects(objects []*s3.Object, s3Session *session.Session, event mo
 		}
 
 		imageFormatter := ImageFormatter{}
-		resizedImage := imageFormatter.resizeToRatio(downloadedS3Image,event.Width, event.Height)
+		resizedImage := imageFormatter.resizeToRatioFromMaxDimensions(downloadedS3Image,event.Width, event.Height)
 		resizedAndCroppedImage := imageFormatter.crop(resizedImage,event.Width, event.Height)
 
 		outputFolder := event.Folder + strconv.Itoa(event.Width) + "x" + strconv.Itoa(event.Height)
