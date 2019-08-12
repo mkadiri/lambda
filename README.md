@@ -24,7 +24,7 @@ json will need to be passed.
 
 The event json needs to specify the s3 bucket, s3 obect (folder) and also the width and height you want to resize images to.
 
-#### Note: make sure `folder` ends with a trailing slash
+**Note: make sure `folder` ends with a trailing slash**
 
  
  ```
