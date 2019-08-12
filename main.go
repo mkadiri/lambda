@@ -40,7 +40,7 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 
 	processS3Objects(resp.Contents, s3Session, event)
 
-	return model.Response{Message: fmt.Sprintf("%s is %d years old!", event.Width, event.Height)}, nil
+	return model.Response{Message: "Resizing complete"}, nil
 }
 
 func processS3Objects(objects []*s3.Object, s3Session *session.Session, event model.Event) {

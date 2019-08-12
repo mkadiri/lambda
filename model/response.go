@@ -1,5 +1,5 @@
 package model
 
 type Response struct {
-	Message string `json:"Answer:"`
+	Message string `json:"message:"`
 }
