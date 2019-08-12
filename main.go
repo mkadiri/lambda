@@ -59,12 +59,12 @@ func processS3Objects(objects []*s3.Object, s3Session *session.Session, event mo
 		bounds := downloadedS3Image.Bounds()
 
 		if bounds.Max.X < event.Width {
-			log.Printf("-- downloaded image width %q is larger than the max width %q, skip resizeToRatio", bounds.Max.X, event.Width)
+			log.Printf("-- downloaded image width %q is smaller than the max width %q, skip resize", bounds.Max.X, event.Width)
 			continue
 		}
 
 		if bounds.Max.Y < event.Height {
-			log.Printf("-- downloaded image height %q is larger than the max height %q, skip resizeToRatio", bounds.Max.X, event.Height)
+			log.Printf("-- downloaded image height %q is smaller than the max height %q, skip resize", bounds.Max.X, event.Height)
 			continue
 		}
 
