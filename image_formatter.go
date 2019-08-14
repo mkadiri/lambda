@@ -46,16 +46,6 @@ func (*ImageFormatter) resizeToRatioFromMaxDimensions(image image.Image, maxWidt
 	imageWidth := bounds.Max.X
 	imageHeight := bounds.Max.Y
 
-	if imageWidth <= maxWidth {
-		log.Printf("-- original image width %q is smaller than or equal to the max width %q, skip resize", imageWidth, maxWidth)
-		return image
-	}
-
-	if imageHeight <= maxHeight {
-		log.Printf("-- original image height %q is smaller than or equal to the max height %q, skip resize", imageHeight, maxHeight)
-		return image
-	}
-
 	newHeight := (imageHeight / imageWidth) * maxWidth
 
 	if newHeight > maxHeight {
