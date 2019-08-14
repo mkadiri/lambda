@@ -60,17 +60,6 @@ func processS3Objects(objects []*s3.Object, s3Session *session.Session, event mo
 
 		s3ImageManager := S3ImageManager{s3Session, event.Bucket}
 		downloadedS3Image := s3ImageManager.download(*item.Key)
-		bounds := downloadedS3Image.Bounds()
-
-		if bounds.Max.X < event.Width {
-			log.Printf("-- downloaded image width %q is smaller than the max width %q, skip resize", bounds.Max.X, event.Width)
-			continue
-		}
-
-		if bounds.Max.Y < event.Height {
-			log.Printf("-- downloaded image height %q is smaller than the max height %q, skip resize", bounds.Max.X, event.Height)
-			continue
-		}
 
 		imageFormatter := ImageFormatter{}
 		resizedImage := imageFormatter.resizeToRatioFromMaxDimensions(downloadedS3Image,event.Width, event.Height)
