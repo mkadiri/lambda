@@ -18,7 +18,7 @@ the the excess height evenly from both top and bottom to give us a final size of
 - Install docker https://docs.docker.com/docker-for-mac/install/
 - Pull the repo using `go get github.com/mkadiri/lambda` (recommended as this will place the project in the correct folder)
 
-You should now find the project in `~/go/src/github.com/mkadiri/lambda`
+You should now find the project in `~/go/src/github.com/mkadiri/lambda-image-resizer`
 
 ### Use the Makefile 
 
