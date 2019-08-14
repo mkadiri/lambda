@@ -14,7 +14,7 @@ type Event struct {
 
 func (event *Event) Validate() error {
 	if event.Bucket == "" {
-		return errors.New("'folder' has not been set in the event")
+		return errors.New("'bucket' has not been set in the event")
 	}
 
 	if event.Folder == "" {
