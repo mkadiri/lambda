@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bitbucket.org/quidco/lambda/model"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/mkadiri/lambda-image-resizer/model"
 	"log"
 	"os"
 	"strconv"
