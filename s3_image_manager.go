@@ -19,7 +19,7 @@ type S3ImageManager struct {
 	Bucket string
 }
 
-func (s3ImageManager *S3ImageManager) download(key string) image.Image {
+func (s3ImageManager S3ImageManager) download(key string) image.Image {
 	buff := &aws.WriteAtBuffer{}
 	s3dl := s3manager.NewDownloader(s3ImageManager.S3Session)
 
@@ -48,7 +48,7 @@ func (s3ImageManager *S3ImageManager) download(key string) image.Image {
 
 // encode to jpg, keep the original filename and upload to a folder in the same directory but a size prefix
 // e.g. /cover-images/1100x250
-func (s3ImageManager *S3ImageManager) upload(folder string, image image.Image, key string) {
+func (s3ImageManager S3ImageManager) upload(folder string, image image.Image, key string) {
 	log.Printf("-- Encoding image for upload to S3")
 	buf := new(bytes.Buffer)
 	err := jpeg.Encode(buf, image, nil)

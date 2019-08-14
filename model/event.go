@@ -12,7 +12,7 @@ type Event struct {
 	Height int    `json:"height"`
 }
 
-func (event *Event) Validate() error {
+func (event Event) Validate() error {
 	if event.Bucket == "" {
 		return errors.New("'bucket' has not been set in the event")
 	}

@@ -13,7 +13,7 @@ type S3ObjectManager struct {
 	Bucket string
 }
 
-func (s3ObjectManager *S3ObjectManager) getObjectsListAtCurrentLevel(folder string) (*s3.ListObjectsV2Output, error) {
+func (s3ObjectManager S3ObjectManager) getObjectsListAtCurrentLevel(folder string) (*s3.ListObjectsV2Output, error) {
 	log.Printf("Retrieving list of objects at current level %q", folder)
 
 	resp, err := s3ObjectManager.S3Client.ListObjectsV2(

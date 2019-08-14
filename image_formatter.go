@@ -40,7 +40,7 @@ type ImageFormatter struct {}
 // width = 1115/280 * 250 = (996) -> 996 x 250
 //
 // resize by WIDTH in order to keep min height of 250 intact
-func (*ImageFormatter) resizeToRatioFromMaxDimensions(image image.Image, maxWidth int, maxHeight int) image.Image {
+func (ImageFormatter) resizeToRatioFromMaxDimensions(image image.Image, maxWidth int, maxHeight int) image.Image {
 	bounds := image.Bounds()
 	imageWidth := bounds.Max.X
 	imageHeight := bounds.Max.Y
@@ -57,7 +57,7 @@ func (*ImageFormatter) resizeToRatioFromMaxDimensions(image image.Image, maxWidt
 	}
 }
 
-func (*ImageFormatter) crop(image image.Image, width int, height int) image.Image {
+func (ImageFormatter) crop(image image.Image, width int, height int) image.Image {
 	bounds := image.Bounds()
 	imageWidth := bounds.Max.X
 	imageHeight := bounds.Max.Y
