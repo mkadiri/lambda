@@ -13,16 +13,17 @@ the the excess height evenly from both top and bottom to give us a final size of
 
 ## Running the application
 
+In the `Makefile` you'll find two commands `make run` and `make zip`
+
 ### make run 
 
 The docker-compose has everything you need to run this application locally, however you'll need to specify your AWS credentials.
 
-For testing purposes you'll need to create and s3 bucket with a folder, with images
+For testing purposes you'll need to create an s3 bucket with a folder, with images
 
-the function name `app` as well as an event
-json will need to be passed.
+The function name `app` as well as an event json will need to be passed.
 
-The event json needs to specify the s3 bucket, s3 obect (folder) and also the width and height you want to resize images to.
+The event json needs to specify the s3 bucket, s3 object (folder) and also the width and height you want to resize images to.
 
 **Note: make sure `folder` ends with a trailing slash**
 
@@ -38,7 +39,7 @@ The event json needs to specify the s3 bucket, s3 obect (folder) and also the wi
 
 ### make zip
 
-The application can be built and zipped
+The application can be built and zipped with the `make zip` command, this zip file can be uploaded in to AWS
       
 ## Resources
 - s3 bucket: https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/s3-example-basic-bucket-operations.html

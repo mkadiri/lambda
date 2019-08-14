@@ -25,7 +25,6 @@ func (event *Event) Validate() error {
 		return errors.New("'folder' '" + event.Folder + "' must end with a trailing forward slash (/)")
 	}
 
-
 	if event.Width == 0 {
 		return errors.New("'width' has not been set in the event")
 	}

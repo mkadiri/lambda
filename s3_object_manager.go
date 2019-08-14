@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"log"
@@ -11,7 +13,7 @@ type S3ObjectManager struct {
 	Bucket string
 }
 
-func (s3ObjectManager *S3ObjectManager) getObjectsListAtCurrentLevel(folder string) *s3.ListObjectsV2Output {
+func (s3ObjectManager *S3ObjectManager) getObjectsListAtCurrentLevel(folder string) (*s3.ListObjectsV2Output, error) {
 	log.Printf("Retrieving list of objects at current level %q", folder)
 
 	resp, err := s3ObjectManager.S3Client.ListObjectsV2(
@@ -22,12 +24,12 @@ func (s3ObjectManager *S3ObjectManager) getObjectsListAtCurrentLevel(folder stri
 		})
 
 	if err != nil {
-		exitErrorf("Unable to list items in bucket %q, %v", s3ObjectManager.Bucket, err)
+		return nil, errors.New(fmt.Sprintf("Unable to list items in bucket %q, %v", s3ObjectManager.Bucket, err))
 	}
 
 	if len(resp.Contents) == 0 {
-		exitErrorf("Folder path %q in bucket %q doesn't exist", folder, s3ObjectManager.Bucket)
+		return nil, errors.New(fmt.Sprintf("Folder path %q in bucket %q doesn't exist", folder, s3ObjectManager.Bucket))
 	}
 
-	return resp
+	return resp, nil
 }

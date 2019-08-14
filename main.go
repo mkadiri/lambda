@@ -36,7 +36,11 @@ func HandleLambdaEvent(event model.Event) (model.Response, error) {
 	s3Client := s3.New(s3Session)
 
 	s3ObjectManager := S3ObjectManager{s3Client, event.Bucket}
-	resp := s3ObjectManager.getObjectsListAtCurrentLevel(event.Folder)
+	resp, err := s3ObjectManager.getObjectsListAtCurrentLevel(event.Folder)
+
+	if err != nil {
+		exitErrorf(err.Error())
+	}
 
 	processS3Objects(resp.Contents, s3Session, event)
 
