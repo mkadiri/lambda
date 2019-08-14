@@ -13,9 +13,15 @@ the the excess height evenly from both top and bottom to give us a final size of
 
 ## Running the application
 
+### Prerequisites
+- Install golang https://golang.org/doc/install#install
+- Install docker https://docs.docker.com/docker-for-mac/install/
+
+### Use the Makefile 
+
 In the `Makefile` you'll find two commands `make run` and `make zip`
 
-### make run 
+#### make run 
 
 The docker-compose has everything you need to run this application locally, however you'll need to specify your AWS credentials.
 
@@ -37,7 +43,7 @@ The event json needs to specify the s3 bucket, s3 object (folder) and also the w
   }
 ```
 
-### make zip
+#### make zip
 
 The application can be built and zipped with the `make zip` command, this zip file can be uploaded in to AWS
       
